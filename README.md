@@ -1,4 +1,5 @@
 # Avaliable ports
 extensions:
 
-ial.htm
+ial.html:
+https://xenability.github.io/websites/ial.html
