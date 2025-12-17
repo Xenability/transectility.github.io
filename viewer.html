@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Web Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 min-h-screen">
+    <!-- Dark mode detection -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <!-- Setup Screen -->
+    <div id="setupScreen" class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Universal Web Viewer</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Create a custom viewer for any website with numbered pages</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6">Configure Your Viewer</h2>
+            
+            <div class="space-y-6">
+                <!-- Title -->
+                <div>
+                    <label for="viewerTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Viewer Title
+                    </label>
+                    <input 
+                        type="text" 
+                        id="viewerTitle" 
+                        class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="e.g., My Manga Reader, Documentation Viewer, etc."
+                        value="A Silent Voice Manga Viewer"
+                    >
+                </div>
+
+                <!-- URL Pattern -->
+                <div>
+                    <label for="urlPattern" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        URL Pattern
+                    </label>
+                    <input 
+                        type="text" 
+                        id="urlPattern" 
+                        class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="https://example.com/page-{N}/"
+                        value="https://a-silent-voice.online/manga/a-silent-voice-chapter-{N}/"
+                    >
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Use <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">{N}</code> as placeholder for the number that changes
+                    </p>
+                </div>
+
+                <!-- Number Range -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="minNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Start Number
+                        </label>
+                        <input 
+                            type="number" 
+                            id="minNumber" 
+                            min="0" 
+                            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="1"
+                            value="1"
+                        >
+                    </div>
+                    <div>
+                        <label for="maxNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            End Number
+                        </label>
+                        <input 
+                            type="number" 
+                            id="maxNumber" 
+                            min="1" 
+                            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="100"
+                            value="62"
+                        >
+                    </div>
+                    <div>
+                        <label for="startPage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Start Page
+                        </label>
+                        <input 
+                            type="number" 
+                            id="startPage" 
+                            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="1"
+                            value="56"
+                        >
+                    </div>
+                </div>
+
+                <!-- Content Type -->
+                <div>
+                    <label for="contentType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Content Type
+                    </label>
+                    <select 
+                        id="contentType" 
+                        class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                        <option value="chapter">Chapters</option>
+                        <option value="page">Pages</option>
+                        <option value="episode">Episodes</option>
+                        <option value="part">Parts</option>
+                        <option value="section">Sections</option>
+                        <option value="volume">Volumes</option>
+                        <option value="issue">Issues</option>
+                    </select>
+                </div>
+
+                <!-- Examples -->
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <h3 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">Examples:</h3>
+                    <div class="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                        <div><strong>Manga:</strong> <code>https://site.com/manga/title-chapter-{N}/</code></div>
+                        <div><strong>Documentation:</strong> <code>https://docs.site.com/guide/page-{N}.html</code></div>
+                        <div><strong>Gallery:</strong> <code>https://gallery.com/album/photo-{N}/</code></div>
+                        <div><strong>Series:</strong> <code>https://series.com/season-1/episode-{N}/</code></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button 
+                        onclick="createViewer()" 
+                        class="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors font-semibold"
+                    >
+                        Create Viewer
+                    </button>
+                    <button 
+                        onclick="saveConfiguration()" 
+                        class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                    >
+                        Save Config
+                    </button>
+                    <button 
+                        onclick="loadConfiguration()" 
+                        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                    >
+                        Load Config
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Viewer Screen -->
+    <div id="viewerScreen" class="container mx-auto px-4 py-6 max-w-6xl hidden">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 id="viewerTitleDisplay" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Universal Web Viewer</h1>
+            <p class="text-gray-600 dark:text-gray-400">
+                Navigate through all <span id="totalPages">0</span> <span id="contentTypeDisplay">pages</span> • 
+                <span id="offlineStatus" class="text-yellow-600 dark:text-yellow-400">Online Only</span>
+            </p>
+            <button onclick="showSetup()" class="mt-2 text-sm text-primary hover:underline">⚙️ Reconfigure</button>
+        </div>
+
+        <!-- Import/Export Controls -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <button onclick="showImportModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                        </svg>
+                        Import <span id="importContentType">Page</span>
+                    </button>
+                    <button onclick="exportData()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Export All
+                    </button>
+                    <button onclick="showImportAllModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Import All
+                    </button>
+                </div>
+                <div class="text-sm text-blue-700 dark:text-blue-300">
+                    <span id="offlineCount">0</span> of <span id="totalOfflinePages">0</span> <span id="offlineContentType">pages</span> stored offline
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Previous/Next Buttons -->
+                <div class="flex items-center gap-2">
+                    <button 
+                        id="prevBtn" 
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                        onclick="navigatePage(-1)"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Previous
+                    </button>
+                    
+                    <button 
+                        id="nextBtn" 
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                        onclick="navigatePage(1)"
+                    >
+                        Next
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Page Info -->
+                <div class="flex items-center gap-2 text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    <span id="contentTypeLabel">Page</span>
+                    <span id="currentPage" class="text-primary">1</span>
+                    <span>of</span>
+                    <span id="maxPageDisplay">1</span>
+                </div>
+
+                <!-- Go To Page -->
+                <div class="flex items-center gap-2">
+                    <label for="pageInput" class="text-sm font-medium text-gray-700 dark:text-gray-300">Go to:</label>
+                    <input 
+                        type="number" 
+                        id="pageInput" 
+                        class="w-20 px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="1"
+                    >
+                    <button 
+                        onclick="goToPage()" 
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                        Go
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="text-center py-8 hidden">
+            <div class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                <svg class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4m0 12v4m9-9h-4M7 12H3m15.364-6.364l-2.828 2.828M9.464 9.464L6.636 6.636m12.728 12.728l-2.828-2.828M9.464 14.536l-2.828 2.828"></path>
+                </svg>
+                Loading <span id="loadingContentType">page</span>...
+            </div>
+        </div>
+
+        <!-- Web Viewer -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <!-- Online Mode -->
+            <iframe 
+                id="webFrame" 
+                class="w-full h-screen border-0"
+                onload="hideLoading()"
+                onerror="showError()"
+            ></iframe>
+            
+            <!-- Offline Mode -->
+            <div id="offlineViewer" class="w-full h-screen p-4 overflow-auto hidden">
+                <div id="offlineContent" class="max-w-4xl mx-auto">
+                    <!-- Offline content will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+            <div class="flex items-center gap-2 text-red-700 dark:text-red-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium">Failed to load <span id="errorContentType">page</span>. Please try again or check your internet connection.</span>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcuts Info -->
+        <div class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>💡 Tip: Use ← and → arrow keys for quick navigation</p>
+        </div>
+    </div>
+
+    <script>
+        // Global configuration
+        let config = {
+            title: '',
+            urlPattern: '',
+            minNumber: 1,
+            maxNumber: 1,
+            currentPage: 1,
+            contentType: 'page'
+        };
+        
+        let offlineData = {}; // Store page HTML content
+        let isOfflineMode = false;
+
+        function createViewer() {
+            // Get configuration values
+            const title = document.getElementById('viewerTitle').value.trim();
+            const urlPattern = document.getElementById('urlPattern').value.trim();
+            const minNumber = parseInt(document.getElementById('minNumber').value);
+            const maxNumber = parseInt(document.getElementById('maxNumber').value);
+            const startPage = parseInt(document.getElementById('startPage').value);
+            const contentType = document.getElementById('contentType').value;
+
+            // Validation
+            if (!title) {
+                showAlert('Please enter a viewer title.');
+                return;
+            }
+            
+            if (!urlPattern || !urlPattern.includes('{N}')) {
+                showAlert('Please enter a valid URL pattern with {N} placeholder.');
+                return;
+            }
+            
+            if (isNaN(minNumber) || isNaN(maxNumber) || minNumber >= maxNumber) {
+                showAlert('Please enter valid start and end numbers (start must be less than end).');
+                return;
+            }
+            
+            if (isNaN(startPage) || startPage < minNumber || startPage > maxNumber) {
+                showAlert(`Please enter a valid start page between ${minNumber} and ${maxNumber}.`);
+                return;
+            }
+
+            // Update configuration
+            config = {
+                title,
+                urlPattern,
+                minNumber,
+                maxNumber,
+                currentPage: startPage,
+                contentType
+            };
+
+            // Update viewer UI
+            setupViewer();
+            
+            // Switch to viewer
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('viewerScreen').classList.remove('hidden');
+            
+            // Load initial page
+            loadPage(config.currentPage);
+        }
+
+        function setupViewer() {
+            const totalPages = config.maxNumber - config.minNumber + 1;
+            const contentTypeCapitalized = config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1);
+            
+            // Update all UI elements
+            document.getElementById('viewerTitleDisplay').textContent = config.title;
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('contentTypeDisplay').textContent = config.contentType + 's';
+            document.getElementById('importContentType').textContent = contentTypeCapitalized;
+            document.getElementById('offlineContentType').textContent = config.contentType + 's';
+            document.getElementById('totalOfflinePages').textContent = totalPages;
+            document.getElementById('contentTypeLabel').textContent = contentTypeCapitalized;
+            document.getElementById('maxPageDisplay').textContent = config.maxNumber;
+            document.getElementById('loadingContentType').textContent = config.contentType;
+            document.getElementById('errorContentType').textContent = config.contentType;
+            
+            // Update input placeholder
+            document.getElementById('pageInput').placeholder = `${config.minNumber}-${config.maxNumber}`;
+            document.getElementById('pageInput').min = config.minNumber;
+            document.getElementById('pageInput').max = config.maxNumber;
+            
+            updatePageDisplay();
+        }
+
+        function showSetup() {
+            document.getElementById('setupScreen').classList.remove('hidden');
+            document.getElementById('viewerScreen').classList.add('hidden');
+        }
+
+        function generateUrl(pageNumber) {
+            return config.urlPattern.replace('{N}', pageNumber);
+        }
+
+        function updatePageDisplay() {
+            document.getElementById('currentPage').textContent = config.currentPage;
+            document.getElementById('pageInput').value = '';
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = config.currentPage <= config.minNumber;
+            document.getElementById('nextBtn').disabled = config.currentPage >= config.maxNumber;
+            
+            // Hide error message
+            document.getElementById('errorMessage').classList.add('hidden');
+            
+            // Update offline status
+            updateOfflineStatus();
+        }
+
+        function updateOfflineStatus() {
+            const offlineCount = Object.keys(offlineData).length;
+            document.getElementById('offlineCount').textContent = offlineCount;
+            
+            if (offlineCount > 0) {
+                document.getElementById('offlineStatus').textContent = `${offlineCount} ${config.contentType}s offline`;
+                document.getElementById('offlineStatus').className = 'text-green-600 dark:text-green-400';
+            } else {
+                document.getElementById('offlineStatus').textContent = 'Online Only';
+                document.getElementById('offlineStatus').className = 'text-yellow-600 dark:text-yellow-400';
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+        }
+
+        function showError() {
+            hideLoading();
+            document.getElementById('errorMessage').classList.remove('hidden');
+        }
+
+        function loadPage(pageNumber) {
+            if (pageNumber < config.minNumber || pageNumber > config.maxNumber) {
+                showAlert(`${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)} ${pageNumber} doesn't exist. Please choose a ${config.contentType} between ${config.minNumber} and ${config.maxNumber}.`);
+                return;
+            }
+
+            config.currentPage = pageNumber;
+            
+            // Check if page is available offline
+            if (offlineData[pageNumber]) {
+                showOfflineContent(pageNumber);
+            } else {
+                showLoading();
+                const iframe = document.getElementById('webFrame');
+                iframe.src = generateUrl(pageNumber);
+                switchToOnlineMode();
+            }
+            
+            updatePageDisplay();
+        }
+
+        function switchToOnlineMode() {
+            isOfflineMode = false;
+            document.getElementById('webFrame').classList.remove('hidden');
+            document.getElementById('offlineViewer').classList.add('hidden');
+        }
+
+        function switchToOfflineMode() {
+            isOfflineMode = true;
+            document.getElementById('webFrame').classList.add('hidden');
+            document.getElementById('offlineViewer').classList.remove('hidden');
+            hideLoading();
+        }
+
+        function showOfflineContent(pageNumber) {
+            const content = offlineData[pageNumber];
+            const offlineContent = document.getElementById('offlineContent');
+            
+            // Create a safe container for the content
+            offlineContent.innerHTML = `
+                <div class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div class="flex items-center gap-2 text-green-700 dark:text-green-400 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Viewing offline content for ${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)} ${pageNumber}
+                    </div>
+                </div>
+                <div class="page-content">${content}</div>
+            `;
+            
+            switchToOfflineMode();
+        }
+
+        function navigatePage(direction) {
+            const newPage = config.currentPage + direction;
+            if (newPage >= config.minNumber && newPage <= config.maxNumber) {
+                loadPage(newPage);
+            }
+        }
+
+        function goToPage() {
+            const input = document.getElementById('pageInput');
+            const pageNumber = parseInt(input.value);
+            
+            if (isNaN(pageNumber) || pageNumber < config.minNumber || pageNumber > config.maxNumber) {
+                showAlert(`Please enter a valid ${config.contentType} number between ${config.minNumber} and ${config.maxNumber}.`);
+                return;
+            }
+            
+            loadPage(pageNumber);
+        }
+
+        function showImportModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Import ${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)} Content</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="pageNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)} Number (${config.minNumber}-${config.maxNumber}):</label>
+                            <input type="number" id="pageNumber" min="${config.minNumber}" max="${config.maxNumber}" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter ${config.contentType} number">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="htmlContent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">HTML Content:</label>
+                            <textarea id="htmlContent" rows="10" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Paste the HTML content here..."></textarea>
+                        </div>
+                        
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+                            <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                <strong>How to get HTML content:</strong><br>
+                                1. Open the ${config.contentType} page in your browser: <code class="text-xs bg-yellow-100 dark:bg-yellow-800 px-1 rounded">${generateUrl('N')}</code><br>
+                                2. Right-click and select "View Page Source" or press Ctrl+U<br>
+                                3. Copy all the HTML content and paste it here
+                            </p>
+                        </div>
+                        
+                        <div class="flex justify-end gap-3">
+                            <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Cancel</button>
+                            <button onclick="importPage()" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg">Import ${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function importPage() {
+            const pageNumber = parseInt(document.getElementById('pageNumber').value);
+            const htmlContent = document.getElementById('htmlContent').value.trim();
+            
+            if (!pageNumber || pageNumber < config.minNumber || pageNumber > config.maxNumber) {
+                showAlert(`Please enter a valid ${config.contentType} number between ${config.minNumber} and ${config.maxNumber}.`);
+                return;
+            }
+            
+            if (!htmlContent) {
+                showAlert('Please paste the HTML content.');
+                return;
+            }
+            
+            offlineData[pageNumber] = htmlContent;
+            updateOfflineStatus();
+            
+            // Close modal
+            document.querySelector('.fixed').remove();
+            
+            showAlert(`${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)} ${pageNumber} has been imported successfully!`);
+        }
+
+        function showImportAllModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Import All ${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)}s</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="allPagesData" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Exported Data (JSON):</label>
+                            <textarea id="allPagesData" rows="10" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Paste the exported JSON data here..."></textarea>
+                        </div>
+                        
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                            <p class="text-sm text-blue-700 dark:text-blue-300">
+                                Paste the JSON data that was exported using the "Export All" button. This will import all ${config.contentType}s at once.
+                            </p>
+                        </div>
+                        
+                        <div class="flex justify-end gap-3">
+                            <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Cancel</button>
+                            <button onclick="importAllPages()" class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg">Import All</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function importAllPages() {
+            const jsonData = document.getElementById('allPagesData').value.trim();
+            
+            if (!jsonData) {
+                showAlert('Please paste the JSON data.');
+                return;
+            }
+            
+            try {
+                const importedData = JSON.parse(jsonData);
+                
+                if (typeof importedData !== 'object' || importedData === null) {
+                    throw new Error('Invalid data format');
+                }
+                
+                let importCount = 0;
+                for (const [pageNumber, content] of Object.entries(importedData)) {
+                    const num = parseInt(pageNumber);
+                    if (num >= config.minNumber && num <= config.maxNumber && content) {
+                        offlineData[num] = content;
+                        importCount++;
+                    }
+                }
+                
+                updateOfflineStatus();
+                document.querySelector('.fixed').remove();
+                showAlert(`Successfully imported ${importCount} ${config.contentType}s!`);
+                
+            } catch (error) {
+                showAlert('Invalid JSON data. Please check the format and try again.');
+            }
+        }
+
+        function exportData() {
+            if (Object.keys(offlineData).length === 0) {
+                showAlert(`No offline ${config.contentType}s to export. Import some ${config.contentType}s first.`);
+                return;
+            }
+            
+            const exportObj = {
+                config: config,
+                data: offlineData
+            };
+            
+            const jsonData = JSON.stringify(exportObj, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${config.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}-data.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert(`${config.contentType.charAt(0).toUpperCase() + config.contentType.slice(1)}s exported successfully! The file has been downloaded.`);
+        }
+
+        function saveConfiguration() {
+            const configData = {
+                title: document.getElementById('viewerTitle').value.trim(),
+                urlPattern: document.getElementById('urlPattern').value.trim(),
+                minNumber: parseInt(document.getElementById('minNumber').value),
+                maxNumber: parseInt(document.getElementById('maxNumber').value),
+                startPage: parseInt(document.getElementById('startPage').value),
+                contentType: document.getElementById('contentType').value
+            };
+            
+            const jsonData = JSON.stringify(configData, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${configData.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}-config.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert('Configuration saved successfully!');
+        }
+
+        function loadConfiguration() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            
+                            // Check if it's a configuration file or export file
+                            if (data.config && data.data) {
+                                // It's an export file with both config and data
+                                loadConfigFromData(data.config);
+                                offlineData = data.data || {};
+                                showAlert('Configuration and offline data loaded successfully!');
+                            } else if (data.title && data.urlPattern) {
+                                // It's a config-only file
+                                loadConfigFromData(data);
+                                showAlert('Configuration loaded successfully!');
+                            } else {
+                                throw new Error('Invalid file format');
+                            }
+                        } catch (error) {
+                            showAlert('Invalid configuration file. Please check the format and try again.');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function loadConfigFromData(configData) {
+            document.getElementById('viewerTitle').value = configData.title || '';
+            document.getElementById('urlPattern').value = configData.urlPattern || '';
+            document.getElementById('minNumber').value = configData.minNumber || 1;
+            document.getElementById('maxNumber').value = configData.maxNumber || 100;
+            document.getElementById('startPage').value = configData.startPage || configData.minNumber || 1;
+            document.getElementById('contentType').value = configData.contentType || 'page';
+        }
+
+        function showAlert(message) {
+            // Create custom alert since alert() is not supported
+            const alertModal = document.createElement('div');
+            alertModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            alertModal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+                    <div class="flex items-center gap-3 mb-4">
+                        <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Notice</h3>
+                    </div>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
+                    <div class="flex justify-end">
+                        <button class="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-lg" onclick="this.closest('.fixed').remove()">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(alertModal);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; // Don't interfere with input fields
+            
+            if (document.getElementById('viewerScreen').classList.contains('hidden')) return; // Only work in viewer mode
+            
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                navigatePage(-1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                navigatePage(1);
+            }
+        });
+
+        // Enter key in page input field
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('pageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    goToPage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
